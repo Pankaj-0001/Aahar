@@ -18,4 +18,31 @@ public class GeneralDTOs {
         private Double fatsGrams;
         private Double fiberGrams;
     }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateUserProfileRequest {
+        private String name;
+        private Integer age;
+        private Double height;
+        private Double weight;
+        private String activityLevel;
+        private String goal;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserProfileResponse {
+        private Long id;
+        private String name;
+        private String email;
+        private Integer age;
+        private String gender;
+        private Double height;
+        private Double weight;
+        private String activityLevel;
+        private String goal;
+        private NutritionalTargets targets;
+    }
 }
