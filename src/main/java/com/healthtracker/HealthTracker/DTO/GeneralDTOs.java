@@ -45,4 +45,26 @@ public class GeneralDTOs {
         private String goal;
         private NutritionalTargets targets;
     }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FoodItemResponse {
+        private Long id;
+        private String name;
+        private String category;
+        private Double servingSize;
+        private String servingUnit;
+        private NutritionalBreakdown nutrition;
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NutritionalBreakdown {
+        private Double calories;
+        private Double protein;
+        private Double carbs;
+        private Double fats;
+        private Double fiber;
+    }
+
 }
