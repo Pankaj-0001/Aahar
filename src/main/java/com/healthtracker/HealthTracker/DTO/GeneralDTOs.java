@@ -1,5 +1,6 @@
 package com.healthtracker.HealthTracker.DTO;
 
+import com.healthtracker.HealthTracker.Entity.PortionMapping;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -65,6 +66,13 @@ public class GeneralDTOs {
         private Double carbs;
         private Double fats;
         private Double fiber;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class PortionInfo {
+        private PortionMapping.PortionType type;
+        private PortionMapping.PortionSize size;
     }
 
 }
