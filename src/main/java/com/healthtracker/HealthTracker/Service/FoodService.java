@@ -1,6 +1,6 @@
 package com.healthtracker.HealthTracker.Service;
 
-import com.healthtracker.HealthTracker.DTO.GeneralDTOs;
+import com.healthtracker.HealthTracker.DTO.CodeDTOs;
 import com.healthtracker.HealthTracker.Entity.FoodItem;
 import com.healthtracker.HealthTracker.Repository.FoodRepo;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ public class FoodService {
         this.foodRepo = foodRepo;
     }
 
-    public List<GeneralDTOs.FoodItemResponse> searchFoodByName(String query){
+    public List<CodeDTOs.FoodItemResponse> searchFoodByName(String query){
         List<FoodItem> foods = foodRepo.findByNameContainingIgnoreCase(query);
 
         return foods.stream().map(this::makeFoodResponse).collect(Collectors.toList());
@@ -53,11 +53,11 @@ public class FoodService {
         return defaultFood;
     }
 
-    public GeneralDTOs.NutritionalBreakdown calculateNutrition(FoodItem food, double gramsConsumed) {
+    public CodeDTOs.NutritionalBreakdown calculateNutrition(FoodItem food, double gramsConsumed) {
         double servingSize = food.getServingSize();
         double multiplier = gramsConsumed / servingSize;
 
-        GeneralDTOs.NutritionalBreakdown nutrition = new GeneralDTOs.NutritionalBreakdown();
+        CodeDTOs.NutritionalBreakdown nutrition = new CodeDTOs.NutritionalBreakdown();
         nutrition.setCalories(food.getCalories() * multiplier);
         nutrition.setProtein(food.getProtein() * multiplier);
         nutrition.setCarbs(food.getCarbs() * multiplier);
@@ -68,15 +68,15 @@ public class FoodService {
     }
 
 
-    private GeneralDTOs.FoodItemResponse makeFoodResponse(FoodItem food) {
-        GeneralDTOs.NutritionalBreakdown nutrition = new GeneralDTOs.NutritionalBreakdown();
+    private CodeDTOs.FoodItemResponse makeFoodResponse(FoodItem food) {
+        CodeDTOs.NutritionalBreakdown nutrition = new CodeDTOs.NutritionalBreakdown();
         nutrition.setCalories(food.getCalories());
         nutrition.setProtein(food.getProtein());
         nutrition.setCarbs(food.getCarbs());
         nutrition.setFats(food.getFats());
         nutrition.setFiber(food.getFiber());
 
-        GeneralDTOs.FoodItemResponse response = new GeneralDTOs.FoodItemResponse();
+        CodeDTOs.FoodItemResponse response = new CodeDTOs.FoodItemResponse();
         response.setId(food.getId());
         response.setName(food.getName());
         response.setCategory(food.getCategory());

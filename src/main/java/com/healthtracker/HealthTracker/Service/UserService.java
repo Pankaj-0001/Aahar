@@ -1,13 +1,11 @@
 package com.healthtracker.HealthTracker.Service;
 
-import com.healthtracker.HealthTracker.DTO.GeneralDTOs;
+import com.healthtracker.HealthTracker.DTO.CodeDTOs;
 import com.healthtracker.HealthTracker.Entity.User;
 import com.healthtracker.HealthTracker.Repository.UserRepo;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -26,12 +24,12 @@ public class UserService {
         return userRepo.findByemail(email).orElseThrow(()-> new RuntimeException("User Not Found"));
     }
 
-    public GeneralDTOs.UserProfileResponse getUserProfile(String email){
+    public CodeDTOs.UserProfileResponse getUserProfile(String email){
         User user = userRepo.findByemail(email).orElseThrow(()-> new RuntimeException("User Not Found"));
         return makeUserProfileResponse(user);
     }
 
-    public GeneralDTOs.UserProfileResponse updateUserProfile(String email ,GeneralDTOs.UpdateUserProfileRequest updateRequest){
+    public CodeDTOs.UserProfileResponse updateUserProfile(String email , CodeDTOs.UpdateUserProfileRequest updateRequest){
         User user = userRepo.findByemail(email).orElseThrow(()-> new RuntimeException("User Not Found"));
 
         if (updateRequest.getName() != null) {
@@ -57,11 +55,11 @@ public class UserService {
 
     }
 
-    private GeneralDTOs.UserProfileResponse makeUserProfileResponse(User user) {
-        GeneralDTOs.NutritionalTargets targets = new GeneralDTOs.NutritionalTargets();
+    private CodeDTOs.UserProfileResponse makeUserProfileResponse(User user) {
+        CodeDTOs.NutritionalTargets targets = new CodeDTOs.NutritionalTargets();
 
-        GeneralDTOs.UserProfileResponse response =
-                new GeneralDTOs.UserProfileResponse();
+        CodeDTOs.UserProfileResponse response =
+                new CodeDTOs.UserProfileResponse();
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());

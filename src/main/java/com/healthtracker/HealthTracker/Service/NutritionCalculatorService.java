@@ -1,13 +1,13 @@
 package com.healthtracker.HealthTracker.Service;
 
-import com.healthtracker.HealthTracker.DTO.GeneralDTOs;
+import com.healthtracker.HealthTracker.DTO.CodeDTOs;
 import com.healthtracker.HealthTracker.Entity.User;
 import org.springframework.stereotype.Service;
 
 @Service
 public class NutritionCalculatorService {
 
-    public GeneralDTOs.NutritionalTargets caltulateTargets(User user){
+    public CodeDTOs.NutritionalTargets caltulateTargets(User user){
         double bmr = calculateBMR(user);
         double tdee = calculateTdee(bmr,user.getActivityLevel());
 
@@ -21,7 +21,7 @@ public class NutritionCalculatorService {
         }
         double fiberGrams = calculateFiberTarget(targetCalories);
 
-        GeneralDTOs.NutritionalTargets targets = new GeneralDTOs.NutritionalTargets(targetCalories,
+        CodeDTOs.NutritionalTargets targets = new CodeDTOs.NutritionalTargets(targetCalories,
                 proteinGram,
                 fatsGrams,
                 carbsGrams,

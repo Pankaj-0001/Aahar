@@ -1,10 +1,9 @@
 package com.healthtracker.HealthTracker.Service;
 
-import com.healthtracker.HealthTracker.DTO.GeneralDTOs;
+import com.healthtracker.HealthTracker.DTO.CodeDTOs;
 import com.healthtracker.HealthTracker.Entity.FoodItem;
 import com.healthtracker.HealthTracker.Entity.PortionKeyword;
 import com.healthtracker.HealthTracker.Entity.PortionMapping;
-import com.healthtracker.HealthTracker.Repository.FoodRepo;
 import com.healthtracker.HealthTracker.Repository.PortionKeywordRepo;
 import com.healthtracker.HealthTracker.Repository.PortionMappingRepo;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,7 @@ public class PortionParserService {
     public double parsePortionToGrams(String foodName, String portionDescription) {
         FoodItem foodItem = foodService.findFoodByName(foodName);
         int quantity = extractQuantity(portionDescription);
-        GeneralDTOs.PortionInfo portionInfo = extractPortionInfo(foodItem, portionDescription);
+        CodeDTOs.PortionInfo portionInfo = extractPortionInfo(foodItem, portionDescription);
         return calculateGrams(foodItem,portionInfo.getType(),portionInfo.getSize(),quantity);
     }
 
@@ -49,7 +48,7 @@ public class PortionParserService {
         return mapping.getGramsEquivalent() * quantity;
     }
 
-    public GeneralDTOs.PortionInfo extractPortionInfo(FoodItem foodItem, String description) {
+    public CodeDTOs.PortionInfo extractPortionInfo(FoodItem foodItem, String description) {
 
         Set<String> tokens = tokenize(description);
 
@@ -73,7 +72,7 @@ public class PortionParserService {
             size = PortionMapping.PortionSize.MEDIUM;
         }
 
-        return new GeneralDTOs.PortionInfo(type, size);
+        return new CodeDTOs.PortionInfo(type, size);
     }
 
     private int extractQuantity(String description) {
