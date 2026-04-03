@@ -25,7 +25,7 @@ public class Myuserdetailservice implements UserDetailsService {
         Optional<User> userinfo = repo.findByemail(username);
         if (userinfo.isPresent()){
             return org.springframework.security.core.userdetails.User.builder()
-                    .username(userinfo.get().getName())
+                    .username(userinfo.get().getEmail())
                     .password(userinfo.get().getPassword())
                     .roles(String.valueOf(Collections.singleton(new SimpleGrantedAuthority("USER"))))
                     .build();

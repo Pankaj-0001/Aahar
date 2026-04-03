@@ -9,8 +9,11 @@ import com.healthtracker.HealthTracker.Repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +31,7 @@ public class DietAnalysisService {
     private final RecommendationEngine recommendationEngine;
     private final DietRecordMapper mapper;
     private final NutritionCalculatorService targetCalculator;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public CodeDTOs.DietRecordResponse createDietRecord(String email, CodeDTOs.CreateDietRecordRequest request) {
@@ -69,12 +73,15 @@ public class DietAnalysisService {
         record.setTotalFats(totals.getFats());
         record.setTotalFiber(totals.getFiber());
         record.setDietScore(score);
-
+        record.setAnalysis(objectMapper.writeValueAsString(analysis));
+        record.setRecommendations(objectMapper.writeValueAsString(recs));
+        record.setCreatedAt(LocalDateTime.now());
         dietRecordRepository.save(record);
 
         // 8. Response
         return mapper.toResponse(record, totals, analysis, recs);
     }
+
     public List<CodeDTOs.DietRecordResponse> getUserDietRecords(Long userId) {
         List<DietRecord> records = dietRecordRepository.findByUserIdOrderByRecordDateDesc(userId);
 
@@ -97,11 +104,20 @@ public class DietAnalysisService {
                 .toList();
     }
     private List<CodeDTOs.DietAnalysis> deserializeAnalysis(String analysisStr) {
-        // In production, use JSON deserialization
-        return new ArrayList<>(); // Placeholder
+        if (analysisStr == null || analysisStr.isBlank()) return new ArrayList<>();
+        try {
+            return objectMapper.readValue(analysisStr, new TypeReference<List<CodeDTOs.DietAnalysis>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
+
     private List<CodeDTOs.Recommendation> deserializeRecommendations(String recsStr) {
-        // In production, use JSON deserialization
-        return new ArrayList<>(); // Placeholder
+        if (recsStr == null || recsStr.isBlank()) return new ArrayList<>();
+        try {
+            return objectMapper.readValue(recsStr, new TypeReference<List<CodeDTOs.Recommendation>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 }

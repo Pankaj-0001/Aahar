@@ -15,6 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -70,6 +73,7 @@ public class AuthService {
         user.setWeight(registerRequest.getWeight());
         user.setActivityLevel(registerRequest.getActivityLevel());
         user.setGoal(registerRequest.getGoal());
+        user.setCreatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 

@@ -3,6 +3,7 @@ package com.healthtracker.HealthTracker.Service;
 import com.healthtracker.HealthTracker.DTO.CodeDTOs;
 import com.healthtracker.HealthTracker.Entity.FoodItem;
 import com.healthtracker.HealthTracker.Repository.FoodRepo;
+import com.healthtracker.HealthTracker.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,22 +36,7 @@ public class FoodService {
 
             return matches.get(0);
         }
-        return createDefaultFoodItem(foodName);
-    }
-
-    private FoodItem createDefaultFoodItem(String foodName) {
-        FoodItem defaultFood = new FoodItem();
-        defaultFood.setName(foodName);
-        defaultFood.setCategory("Unknown");
-        defaultFood.setServingSize(0.0);
-        defaultFood.setServingUnit("grams");
-        defaultFood.setCalories(0.0);
-        defaultFood.setProtein(0.0);
-        defaultFood.setCarbs(0.0);
-        defaultFood.setFats(0.0);
-        defaultFood.setFiber(0.0);
-
-        return defaultFood;
+        throw new ResourceNotFoundException("Food not found in DB");
     }
 
     public CodeDTOs.NutritionalBreakdown calculateNutrition(FoodItem food, double gramsConsumed) {

@@ -5,7 +5,10 @@ import com.healthtracker.HealthTracker.Entity.DietRecord;
 import com.healthtracker.HealthTracker.Entity.FoodItem;
 import com.healthtracker.HealthTracker.Entity.MealEntry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class MealProcessorService {
         meal.setFoodName(request.getFoodName());
         meal.setPortionDescription(request.getPortionDescription());
         meal.setQuantity(grams);
-
+        meal.setCreatedAt(LocalDateTime.now());
         meal.setCalories(nutrition.getCalories());
         meal.setProtein(nutrition.getProtein());
         meal.setCarbs(nutrition.getCarbs());

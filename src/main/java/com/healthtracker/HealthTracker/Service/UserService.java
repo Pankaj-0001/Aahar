@@ -56,7 +56,7 @@ public class UserService {
     }
 
     private CodeDTOs.UserProfileResponse makeUserProfileResponse(User user) {
-        CodeDTOs.NutritionalTargets targets = new CodeDTOs.NutritionalTargets();
+        CodeDTOs.NutritionalTargets targets = nutritionCalculatorService.caltulateTargets(user);
 
         CodeDTOs.UserProfileResponse response =
                 new CodeDTOs.UserProfileResponse();
