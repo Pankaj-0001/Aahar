@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.healthtracker</groupId>
-	<artifactId>HealthTracker</artifactId>
+	<artifactId>Aahar</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>HealthTracker</name>
 	<description>Health Tracker APP:A diet analysis platform</description>
