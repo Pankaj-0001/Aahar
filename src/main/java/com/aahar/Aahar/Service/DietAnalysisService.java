@@ -6,11 +6,13 @@ import com.aahar.Aahar.Entity.MealEntry;
 import com.aahar.Aahar.Entity.User;
 import com.aahar.Aahar.Repository.DietRecordRepository;
 import com.aahar.Aahar.Repository.UserRepo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,8 +35,8 @@ public class DietAnalysisService {
     private final NutritionCalculatorService targetCalculator;
     private final ObjectMapper objectMapper;
 
-    @Transactional
-    public CodeDTOs.DietRecordResponse createDietRecord(String email, CodeDTOs.CreateDietRecordRequest request) {
+    @Transactional(timeout = 60)
+    public CodeDTOs.DietRecordResponse createDietRecord(String email, CodeDTOs.CreateDietRecordRequest request) throws JsonProcessingException {
 
         User user = userRepository.findByemail(email).orElseThrow(() -> new RuntimeException("User not found"));
 

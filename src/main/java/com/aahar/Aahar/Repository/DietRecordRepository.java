@@ -12,4 +12,7 @@ import java.util.Optional;
 public interface DietRecordRepository extends JpaRepository<DietRecord,Long> {
     List<DietRecord> findByUserIdOrderByRecordDateDesc(Long userId);
     Optional<DietRecord> findByUserIdAndRecordDate(Long userId, LocalDate recordDate);
+    List<DietRecord> findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
+            Long userId, LocalDate start, LocalDate end
+    );
 }
