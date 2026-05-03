@@ -10,9 +10,8 @@ import java.util.Optional;
 @Repository
 public interface PortionMappingRepo extends JpaRepository<PortionMapping, Long> {
 
-    Optional<PortionMapping> findByFoodItemAndPortionTypeAndPortionSize(
-            FoodItem foodItem,
-            PortionMapping.PortionType portionType,
-            PortionMapping.PortionSize portionSize
+    Optional<PortionMapping> findFirstByPortionTypeAndPortionSize(
+            PortionMapping.PortionType type,
+            PortionMapping.PortionSize size
     );
 }

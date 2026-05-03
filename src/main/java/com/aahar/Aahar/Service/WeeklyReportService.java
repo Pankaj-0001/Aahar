@@ -17,15 +17,12 @@ public class WeeklyReportService {
     private final DietRecordRepository dietRecordRepository;
     private final OllamaChatModel chatModel;
 
-    public CodeDTOs.WeeklyProgressResponse getWeeklyReport(Long userId) {
-
-        LocalDate weekEnd = LocalDate.now();
-        LocalDate weekStart = weekEnd.minusDays(6);
+    public CodeDTOs.WeeklyProgressResponse getWeeklyReport(Long userId, LocalDate weekStart, LocalDate weekEnd) {
 
         List<DietRecord> records = dietRecordRepository
-            .findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
-                userId, weekStart, weekEnd
-            );
+                .findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
+                        userId, weekStart, weekEnd
+                );
 
         // Daily progress list
         List<CodeDTOs.DailyProgress> dailyProgress = records.stream()
@@ -74,31 +71,77 @@ public class WeeklyReportService {
     private String generateInsights(double avgScore,
                                     CodeDTOs.NutritionalBreakdown avg,
                                     int days) {
+
         String prompt = String.format("""
-            You are an Indian nutritionist. Give a 2-3 line weekly diet summary.
-            Be specific, encouraging, and mention Indian foods where relevant.
-            Keep it under 60 words.
-            
-            Data:
-            - Days tracked: %d
-            - Average diet score: %.1f/100
-            - Avg daily calories: %.0f kcal
-            - Avg protein: %.1fg
-            - Avg carbs: %.1fg
-            - Avg fats: %.1fg
-            - Avg fiber: %.1fg
-            
-            Respond with plain text only, no JSON.
-            """,
-            days, avgScore,
-            avg.getCalories(), avg.getProtein(),
-            avg.getCarbs(), avg.getFats(), avg.getFiber()
+                                        You are an expert nutritionist.
+                                        
+                                        Generate a detailed weekly diet report in markdown.
+                                        
+                                        Use this structure:
+                                        
+                                        ## Weekly Overview
+                                        Comment on overall performance based on score.
+                                        
+                                        ## Nutritional Analysis
+                                        Analyze calories, protein, carbs, fats and fiber.
+                                        Mention strengths and deficiencies.
+                                        
+                                        ## Recommendations
+                                        Suggest Indian foods to improve weak areas.
+                                        
+                                        ## Next Week Goals
+                                        Give 3 practical action points.
+                                        
+                                        ## Summary
+                                        End with motivating coach-style feedback.
+                                        
+                                        Data:
+                                        Days tracked: %d
+                                        Average Diet Score: %.1f/100
+                                        Calories: %.0f kcal
+                                        Protein: %.1fg
+                                        Carbs: %.1fg
+                                        Fats: %.1fg
+                                        Fiber: %.1fg
+                                        
+                                        Rules:
+                                        - 250-400 words
+                                        - Specific, not generic
+                                        - Professional tone
+                                        - Use bullets where useful
+                                        - Return markdown only
+                                        -Put a blank line after every heading.
+                                        """,
+                days,
+                avgScore,
+                avg.getCalories(),
+                avg.getProtein(),
+                avg.getCarbs(),
+                avg.getFats(),
+                avg.getFiber()
         );
 
         try {
             return chatModel.call(prompt);
-        } catch (Exception e) {
-            return "Good effort this week! Keep tracking your meals consistently.";
+        } catch(Exception e) {
+            return """
+                    ## Weekly Overview
+                    Your dietary consistency was fairly good this week with room for optimization.
+                    
+                    ## Nutritional Analysis
+                    Protein and fiber need improvement while maintaining calorie balance.
+                    
+                    ## Recommendations
+                    Add paneer, dal, sprouts, curd, oats and fruit to improve nutrition quality.
+                    
+                    ## Next Week Goals
+                    1. Increase protein at each meal
+                    2. Improve fiber intake daily
+                    3. Keep diet score above 80
+                    
+                    ## Summary
+                    Good progress this week. Focus on consistency and nutrient quality next week.
+                    """;
         }
     }
 }

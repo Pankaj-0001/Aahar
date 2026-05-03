@@ -39,20 +39,27 @@ public class DietAnalysisService {
     public CodeDTOs.DietRecordResponse createDietRecord(String email, CodeDTOs.CreateDietRecordRequest request) throws JsonProcessingException {
 
         User user = userRepository.findByemail(email).orElseThrow(() -> new RuntimeException("User not found"));
-
-        DietRecord record = new DietRecord();
+        LocalDate recordDate = request.getRecordDate() != null
+                ? request.getRecordDate()
+                : LocalDate.now();
+        DietRecord record = dietRecordRepository
+                .findByUserIdAndRecordDate(user.getId(), recordDate)
+                .orElse(new DietRecord());
         record.setUser(user);
-        record.setRecordDate(
-                request.getRecordDate() != null ? request.getRecordDate() : LocalDate.now()
-        );
+        record.setRecordDate(recordDate);
 
         // 1. Process Meals
-        List<MealEntry> meals = request.getMeals().stream()
+        List<MealEntry> existingMeals = record.getMeals() != null
+                ? record.getMeals()
+                : new ArrayList<>();
+        List<MealEntry> newMeals = request.getMeals().stream()
                 .map(req -> mealProcessor.process(req, record))
                 .toList();
+        existingMeals.addAll(newMeals);
+        record.setMeals(existingMeals);
 
         // 2. Aggregate
-        CodeDTOs.NutritionalBreakdown totals = aggregator.aggregate(meals);
+        CodeDTOs.NutritionalBreakdown totals = aggregator.aggregate(existingMeals);
 
         // 3. Targets
         CodeDTOs.NutritionalTargets targets = targetCalculator.caltulateTargets(user);
@@ -68,7 +75,7 @@ public class DietAnalysisService {
                 recommendationEngine.generate(analysis, user.getGoal());
 
         // 7. Save
-        record.setMeals(meals);
+        record.setMeals(existingMeals);
         record.setTotalCalories(totals.getCalories());
         record.setTotalProtein(totals.getProtein());
         record.setTotalCarbs(totals.getCarbs());

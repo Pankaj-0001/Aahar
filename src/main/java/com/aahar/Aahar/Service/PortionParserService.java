@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,14 +40,28 @@ public class PortionParserService {
                                  PortionMapping.PortionType type,
                                  PortionMapping.PortionSize size,
                                  int quantity) {
+        Optional<PortionMapping> mapping = portionMappingRepo
+                .findFirstByPortionTypeAndPortionSize(type, size);
 
-        PortionMapping mapping = portionMappingRepo
-                .findByFoodItemAndPortionTypeAndPortionSize(foodItem, type, size)
-                .orElseThrow(() -> new RuntimeException(
-                        "No portion mapping found for: " + type + " " + size));
+        double gramsPerUnit = mapping
+                .map(PortionMapping::getGramsEquivalent)
+                .orElse(getDefaultGrams(type, size));
 
-        return mapping.getGramsEquivalent() * quantity;
+        return gramsPerUnit * quantity;
     }
+
+    private double getDefaultGrams(PortionMapping.PortionType type, PortionMapping.PortionSize size) {
+        return switch (type) {
+            case ROTI     -> size == PortionMapping.PortionSize.SMALL ? 25.0 : size == PortionMapping.PortionSize.LARGE ? 50.0 : 35.0;
+            case KATORI   -> size == PortionMapping.PortionSize.SMALL ? 80.0 : size == PortionMapping.PortionSize.LARGE ? 160.0 : 120.0;
+            case BOWL     -> size == PortionMapping.PortionSize.SMALL ? 100.0 : size == PortionMapping.PortionSize.LARGE ? 200.0 : 150.0;
+            case GLASS    -> size == PortionMapping.PortionSize.SMALL ? 150.0 : size == PortionMapping.PortionSize.LARGE ? 300.0 : 200.0;
+            case PIECE    -> size == PortionMapping.PortionSize.SMALL ? 50.0 : size == PortionMapping.PortionSize.LARGE ? 150.0 : 100.0;
+            case SPOON    -> size == PortionMapping.PortionSize.SMALL ? 5.0 : size == PortionMapping.PortionSize.LARGE ? 20.0 : 14.0;
+            case HANDFUL  -> size == PortionMapping.PortionSize.SMALL ? 15.0 : size == PortionMapping.PortionSize.LARGE ? 40.0 : 25.0;
+        };
+    }
+
 
     public CodeDTOs.PortionInfo extractPortionInfo(FoodItem foodItem, String description) {
 
