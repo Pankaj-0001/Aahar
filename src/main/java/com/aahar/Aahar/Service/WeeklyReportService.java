@@ -4,143 +4,172 @@ import com.aahar.Aahar.DTO.CodeDTOs;
 import com.aahar.Aahar.Entity.DietRecord;
 import com.aahar.Aahar.Repository.DietRecordRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 public class WeeklyReportService {
 
     private final DietRecordRepository dietRecordRepository;
-    private final OllamaChatModel chatModel;
+    private final ChatModel chatModel;
 
-    public CodeDTOs.WeeklyProgressResponse getWeeklyReport(Long userId, LocalDate weekStart, LocalDate weekEnd) {
+    public CodeDTOs.WeeklyProgressResponse getWeeklyReport(
+            Long userId,
+            LocalDate weekStart,
+            LocalDate weekEnd
+    ) {
 
-        List<DietRecord> records = dietRecordRepository
-                .findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
-                        userId, weekStart, weekEnd
+        List<DietRecord> records =
+                dietRecordRepository
+                        .findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
+                                userId,
+                                weekStart,
+                                weekEnd
+                        );
+
+        List<CodeDTOs.DailyProgress> dailyProgress =
+                records.stream()
+                        .map(record -> new CodeDTOs.DailyProgress(
+                                record.getRecordDate(),
+                                record.getDietScore(),
+
+                                new CodeDTOs.NutritionalBreakdown(
+                                        record.getTotalCalories(),
+                                        record.getTotalProtein(),
+                                        record.getTotalCarbs(),
+                                        record.getTotalFats(),
+                                        record.getTotalFiber()
+                                )
+                        ))
+                        .toList();
+
+        double averageScore =
+                records.stream()
+                        .mapToInt(DietRecord::getDietScore)
+                        .average()
+                        .orElse(0);
+
+        CodeDTOs.NutritionalBreakdown averageNutrition =
+                new CodeDTOs.NutritionalBreakdown(
+
+                        average(records, DietRecord::getTotalCalories),
+                        average(records, DietRecord::getTotalProtein),
+                        average(records, DietRecord::getTotalCarbs),
+                        average(records, DietRecord::getTotalFats),
+                        average(records, DietRecord::getTotalFiber)
                 );
 
-        // Daily progress list
-        List<CodeDTOs.DailyProgress> dailyProgress = records.stream()
-            .map(r -> new CodeDTOs.DailyProgress(
-                r.getRecordDate(),
-                r.getDietScore(),
-                new CodeDTOs.NutritionalBreakdown(
-                    r.getTotalCalories(),
-                    r.getTotalProtein(),
-                    r.getTotalCarbs(),
-                    r.getTotalFats(),
-                    r.getTotalFiber()
-                )
-            )).toList();
+        String insights;
 
-        // Weekly averages
-        double avgScore = records.stream()
-            .mapToInt(DietRecord::getDietScore)
-            .average().orElse(0.0);
+        if (records.isEmpty()) {
 
-        CodeDTOs.NutritionalBreakdown weeklyAvg = new CodeDTOs.NutritionalBreakdown(
-            average(records, DietRecord::getTotalCalories),
-            average(records, DietRecord::getTotalProtein),
-            average(records, DietRecord::getTotalCarbs),
-            average(records, DietRecord::getTotalFats),
-            average(records, DietRecord::getTotalFiber)
-        );
+            insights = "No weekly data available.";
 
-        // AI insights
-        String insights = records.isEmpty()
-            ? "No data for this week."
-            : generateInsights(avgScore, weeklyAvg, records.size());
+        } else {
+
+            insights = generateInsights(
+                    averageScore,
+                    averageNutrition
+            );
+        }
 
         return new CodeDTOs.WeeklyProgressResponse(
-            weekStart, weekEnd, avgScore, weeklyAvg, dailyProgress, insights
+                weekStart,
+                weekEnd,
+                averageScore,
+                averageNutrition,
+                dailyProgress,
+                insights
         );
     }
 
-    private double average(List<DietRecord> records,
-                           java.util.function.Function<DietRecord, Double> getter) {
+    private double average(
+            List<DietRecord> records,
+            Function<DietRecord, Double> getter
+    ) {
+
         return records.stream()
-            .mapToDouble(r -> getter.apply(r) != null ? getter.apply(r) : 0.0)
-            .average().orElse(0.0);
+                .mapToDouble(record -> {
+
+                    Double value = getter.apply(record);
+
+                    return value == null ? 0 : value;
+                })
+                .average()
+                .orElse(0);
     }
 
-    private String generateInsights(double avgScore,
-                                    CodeDTOs.NutritionalBreakdown avg,
-                                    int days) {
+    private String generateInsights(
+            double score,
+            CodeDTOs.NutritionalBreakdown nutrition
+    ) {
 
-        String prompt = String.format("""
-                                        You are an expert nutritionist.
-                                        
-                                        Generate a detailed weekly diet report in markdown.
-                                        
-                                        Use this structure:
-                                        
-                                        ## Weekly Overview
-                                        Comment on overall performance based on score.
-                                        
-                                        ## Nutritional Analysis
-                                        Analyze calories, protein, carbs, fats and fiber.
-                                        Mention strengths and deficiencies.
-                                        
-                                        ## Recommendations
-                                        Suggest Indian foods to improve weak areas.
-                                        
-                                        ## Next Week Goals
-                                        Give 3 practical action points.
-                                        
-                                        ## Summary
-                                        End with motivating coach-style feedback.
-                                        
-                                        Data:
-                                        Days tracked: %d
-                                        Average Diet Score: %.1f/100
-                                        Calories: %.0f kcal
-                                        Protein: %.1fg
-                                        Carbs: %.1fg
-                                        Fats: %.1fg
-                                        Fiber: %.1fg
-                                        
-                                        Rules:
-                                        - 250-400 words
-                                        - Specific, not generic
-                                        - Professional tone
-                                        - Use bullets where useful
-                                        - Return markdown only
-                                        -Put a blank line after every heading.
-                                        """,
-                days,
-                avgScore,
-                avg.getCalories(),
-                avg.getProtein(),
-                avg.getCarbs(),
-                avg.getFats(),
-                avg.getFiber()
+        String prompt =  """
+            You are an Indian nutrition expert analyzing a user's weekly diet.
+            
+            Write a realistic and natural diet report.
+            
+            Do NOT:
+            - act like a therapist
+            - praise the user
+            - say "good job"
+            - say "first step"
+            - introduce yourself
+            - use corporate wellness language
+            - use motivational filler
+            
+            Write like a real nutritionist giving practical analysis.
+            
+            The report should cover:
+            - overall diet quality
+            - calorie intake
+            - protein intake
+            - carbs and fats
+            - fiber intake
+            - possible health effects
+            - practical Indian food improvements
+            
+            Keep the tone direct, human, and informative.
+            
+            Write in normal paragraphs.
+            No markdown.
+            Keep it around 200-300 words.
+            
+            Data:
+            
+            Score: %s
+            Calories: %.0f
+            Protein: %.1f
+            Carbs: %.1f
+            Fats: %.1f
+            Fiber: %.1f
+            """.formatted(
+                score,
+                nutrition.getCalories(),
+                nutrition.getProtein(),
+                nutrition.getCarbs(),
+                nutrition.getFats(),
+                nutrition.getFiber()
         );
 
         try {
+
             return chatModel.call(prompt);
-        } catch(Exception e) {
+
+        } catch (Exception e) {
+
             return """
-                    ## Weekly Overview
-                    Your dietary consistency was fairly good this week with room for optimization.
-                    
-                    ## Nutritional Analysis
-                    Protein and fiber need improvement while maintaining calorie balance.
-                    
-                    ## Recommendations
-                    Add paneer, dal, sprouts, curd, oats and fruit to improve nutrition quality.
-                    
-                    ## Next Week Goals
-                    1. Increase protein at each meal
-                    2. Improve fiber intake daily
-                    3. Keep diet score above 80
-                    
-                    ## Summary
-                    Good progress this week. Focus on consistency and nutrient quality next week.
+                    Weekly diet tracking completed.
+
+                    Protein intake can improve.
+                    Add more fruits, salads, paneer, and dal.
+
+                    Maintain consistency next week.
                     """;
         }
     }
