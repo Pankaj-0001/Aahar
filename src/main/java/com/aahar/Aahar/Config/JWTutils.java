@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 public class JWTutils {
 
-    @Value("${jwt.secretKey}")
+    @Value("${jwt_secretKey}")
     private String Secret_key ;
 
     public String generateToken(String email) {

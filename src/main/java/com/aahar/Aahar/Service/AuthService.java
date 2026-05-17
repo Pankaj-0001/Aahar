@@ -49,7 +49,7 @@ public class AuthService {
         User user = userRepository.findByemail(loginRequest.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return new CodeDTOs.AuthResponse(jwt, user.getId(), user.getName(), user.getEmail());
+        return new CodeDTOs.AuthResponse(jwt, user.getId(), user.getName(), user.getEmail(),true);
     }
 
     /**
@@ -77,5 +77,19 @@ public class AuthService {
         userRepository.save(user);
 
         return new CodeDTOs.MessageResponse("User registered successfully!");
+    }
+    public void completeUserProfile(String email, CodeDTOs.CompleteProfileRequest request) {
+        User user = userRepository.findByemail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setAge(request.getAge());
+        user.setGender(request.getGender());
+        user.setHeight(request.getHeight());
+        user.setWeight(request.getWeight());
+        user.setActivityLevel(request.getActivityLevel());
+        user.setGoal(request.getGoal());
+        user.setProfileComplete(true);
+
+        userRepository.save(user);
     }
 }

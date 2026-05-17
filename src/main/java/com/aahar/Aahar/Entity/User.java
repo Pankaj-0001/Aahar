@@ -30,7 +30,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String password;
+    private String password="";
 
     private Integer age;
 
@@ -46,6 +46,10 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private DietGoal goal;
+
+    private String googleId;
+
+    private boolean profileComplete = false;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

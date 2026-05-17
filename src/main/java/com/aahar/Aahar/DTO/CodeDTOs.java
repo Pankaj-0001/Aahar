@@ -68,19 +68,41 @@ public class CodeDTOs {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class GoogleAuthRequest {
+        private String idToken;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class AuthResponse {
         private String token;
         private String type = "Bearer";
         private Long id;
         private String name;
         private String email;
+        private boolean profileComplete;   // ADD THIS to existing AuthResponse
 
-        public AuthResponse(String token, Long id, String name, String email) {
+        public AuthResponse(String token, Long id, String name, String email, boolean profileComplete) {
             this.token = token;
             this.id = id;
             this.name = name;
             this.email = email;
+            this.profileComplete = profileComplete;
         }
+    }
+
+    // Also add for completing profile after Google signup
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompleteProfileRequest {
+        @NotNull private Integer age;
+        @NotNull private User.Gender gender;
+        @NotNull private Double height;
+        @NotNull private Double weight;
+        @NotNull private User.ActivityLevel activityLevel;
+        @NotNull private User.DietGoal goal;
     }
 
     // Message Response (for generic messages)

@@ -7,101 +7,80 @@ import org.springframework.stereotype.Service;
 @Service
 public class NutritionCalculatorService {
 
-    public CodeDTOs.NutritionalTargets caltulateTargets(User user){
+    public CodeDTOs.NutritionalTargets caltulateTargets(User user) {
+
         double bmr = calculateBMR(user);
-        double tdee = calculateTdee(bmr,user.getActivityLevel());
+        double tdee = calculateTdee(bmr, user.getActivityLevel());
+        double targetCalories = calculateCaloriesForGoal(tdee, user.getGoal());
 
-        double targetCalories = calculateCaloriesForGoal(tdee,user.getGoal());
-
-        double proteinGram = calculateProtienTarget(user);
-        double fatsGrams = calculateFatTarget(user);
-        double carbsGrams = calculateCarbTarget(targetCalories, proteinGram, fatsGrams);
-        if (carbsGrams < 0) {
-            carbsGrams = 0;
-        }
-        double fiberGrams = calculateFiberTarget(targetCalories);
-
-        CodeDTOs.NutritionalTargets targets = new CodeDTOs.NutritionalTargets(targetCalories,
-                proteinGram,
-                fatsGrams,
-                carbsGrams,
-                fiberGrams);
-
-        return targets;
-    }
-
-    private double calculateFiberTarget(double calories) {
-        return (calories / 1000.0) * 14.0;
-    }
-
-    private double calculateFatTarget(User user) {
         double weight = user.getWeight();
 
-        double factor = switch (user.getGoal()) {
-            case WEIGHT_LOSS -> 0.7;
-            case MUSCLE_BUILDING -> 0.8;
-            case WEIGHT_GAIN -> 0.9;
-            case MAINTENANCE -> 0.8;
+        double proteinPerKg = switch (user.getGoal()) {
+            case WEIGHT_LOSS -> 2.0;
+            case MUSCLE_BUILDING -> 2.2;
+            case WEIGHT_GAIN -> 1.8;
+            case MAINTENANCE -> 1.6;
         };
 
-        return weight * factor;
-    }
+        double proteinGrams = clamp(weight * proteinPerKg, 110, 180);
+        double proteinCalories = proteinGrams * 4.0;
 
-    private double calculateCarbTarget(double calories, double protein, double fat) {
-        double remainingCalories = calories - (protein * 4 + fat * 9);
+        double fatRatio = switch (user.getGoal()) {
+            case WEIGHT_LOSS -> 0.25;
+            case MUSCLE_BUILDING -> 0.25;
+            case WEIGHT_GAIN -> 0.30;
+            case MAINTENANCE -> 0.30;
+        };
+
+        double fatCalories = targetCalories * fatRatio;
+        double fatGrams = fatCalories / 9.0;
+
+        fatGrams = clamp(fatGrams, 45, 90);
+        fatCalories = fatGrams * 9.0;
+
+        double remainingCalories = targetCalories - (proteinCalories + fatCalories);
+
         if (remainingCalories < 0) {
-            remainingCalories = 0;
+            fatCalories = targetCalories - proteinCalories;
+            fatGrams = Math.max(fatCalories / 9.0, 45);
+            fatCalories = fatGrams * 9.0;
+            remainingCalories = targetCalories - (proteinCalories + fatCalories);
         }
 
-        return remainingCalories / 4;
-    }
+        double carbsGrams = Math.max(remainingCalories / 4.0, 0);
 
-    private double calculateProtienTarget(User user) {
+        double fiberFromWeight = weight * 0.5;
+        double fiberFromCalories = (targetCalories / 1000.0) * 10.0;
 
-        double weight = user.getWeight();
-        double height = user.getHeight();
-        User.DietGoal goal = user.getGoal();
+        double fiberGrams = (fiberFromWeight + fiberFromCalories) / 2.0;
+        fiberGrams = clamp(fiberGrams, 25, 45);
 
-        double bodyFat = estimateBodyFat(weight, height);
-
-        double leanMass = weight * (1 - bodyFat);
-
-        double gramsPerKgLBM = switch (goal) {
-            case WEIGHT_LOSS -> 2.2;
-            case MUSCLE_BUILDING -> 2.4;
-            case WEIGHT_GAIN -> 2.0;
-            case MAINTENANCE -> 1.8;
-        };
-        return leanMass * gramsPerKgLBM;
-
-    }
-    private double estimateBodyFat(double weight, double height) {
-        double bmi = weight / Math.pow(height / 100.0, 2);
-        if (bmi < 18.5) return 0.10;
-        if (bmi < 25) return 0.18;
-        if (bmi < 30) return 0.25;
-        return 0.30;
+        return new CodeDTOs.NutritionalTargets(
+                 (targetCalories),
+                 (proteinGrams),
+                 (carbsGrams),
+                 (fatGrams),
+                 (fiberGrams)
+        );
     }
 
     private double calculateCaloriesForGoal(double tdee, User.DietGoal goal) {
         return switch (goal) {
-            case WEIGHT_LOSS -> tdee - 500;
-            case WEIGHT_GAIN -> tdee + 500;
-            case MUSCLE_BUILDING -> tdee + 300;
+            case WEIGHT_LOSS -> tdee - 400;
+            case WEIGHT_GAIN -> tdee + 300;
+            case MUSCLE_BUILDING -> tdee + 250;
             case MAINTENANCE -> tdee;
         };
     }
 
     private double calculateTdee(double bmr, User.ActivityLevel activityLevel) {
-        double multiplier = switch (activityLevel) {
+        return bmr * switch (activityLevel) {
             case SEDENTARY -> 1.2;
             case LIGHT -> 1.375;
             case MODERATE -> 1.55;
             case ACTIVE -> 1.725;
             case VERY_ACTIVE -> 1.9;
         };
-
-        return bmr * multiplier;
     }
 
     private double calculateBMR(User user) {
@@ -110,12 +89,17 @@ public class NutritionCalculatorService {
         int age = user.getAge();
 
         if (user.getGender() == User.Gender.MALE) {
-
             return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
         } else {
-
             return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
         }
     }
 
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private long round(double value) {
+        return Math.round(value);
+    }
 }
