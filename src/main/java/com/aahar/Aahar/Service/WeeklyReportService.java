@@ -2,7 +2,9 @@ package com.aahar.Aahar.Service;
 
 import com.aahar.Aahar.DTO.CodeDTOs;
 import com.aahar.Aahar.Entity.DietRecord;
+import com.aahar.Aahar.Entity.WeeklyReport;
 import com.aahar.Aahar.Repository.DietRecordRepository;
+import com.aahar.Aahar.Repository.WeeklyReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class WeeklyReportService {
 
     private final DietRecordRepository dietRecordRepository;
+    private final WeeklyReportRepository weeklyReportRepository;
     private final ChatModel chatModel;
 
     public CodeDTOs.WeeklyProgressResponse getWeeklyReport(
@@ -112,11 +115,19 @@ public class WeeklyReportService {
                         average(records, DietRecord::getTotalFiber)
                 );
 
-        String insights = generateInsights(
-                averageScore,
-                averageNutrition,
-                records
-        );
+        String insights = weeklyReportRepository
+                .findByUserIdAndWeekStartAndWeekEnd(userId, weekStart, weekEnd)
+                .map(WeeklyReport::getInsights)
+                .orElseGet(() -> {
+                    String generated = generateInsights(averageScore, averageNutrition, records);
+                    WeeklyReport report = new WeeklyReport();
+                    report.setUserId(userId);
+                    report.setWeekStart(weekStart);
+                    report.setWeekEnd(weekEnd);
+                    report.setInsights(generated);
+                    weeklyReportRepository.save(report);
+                    return generated;
+                });
 
         return new CodeDTOs.WeeklyProgressResponse(
                 weekStart,
