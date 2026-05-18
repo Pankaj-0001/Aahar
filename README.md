@@ -160,7 +160,7 @@ npm run dev
 Frontend runs on:
 
 ```bash
-http://localhost:5173
+(https://healthtrackar.netlify.app/)
 ```
 
 ---
