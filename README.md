@@ -1,4 +1,4 @@
-# Health Tracker AI
+# Aahar(Health Tracker AI)
 
 An AI-powered full-stack nutrition intelligence platform designed for Indian dietary contexts. Users can log meals using natural language descriptions, receive AI-generated nutritional analysis, track daily macro goals, calculate diet quality scores, and generate weekly health insights.
 
