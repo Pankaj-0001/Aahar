@@ -1,211 +1,260 @@
-# Aahar 🍱
+# Health Tracker AI
 
-Aahar is a full-stack AI-powered nutrition and calorie tracking application that helps users log meals, track dietary goals, and manage nutrition intelligently.
+An AI-powered full-stack nutrition intelligence platform designed for Indian dietary contexts. Users can log meals using natural language descriptions, receive AI-generated nutritional analysis, track daily macro goals, calculate diet quality scores, and generate weekly health insights.
 
-Built using:
-
-* Spring Boot (Backend)
-* React + Tailwind CSS (Frontend)
-* JWT Authentication
-* Google OAuth Login
-* PostgreSQL/MySQL
-* AI-powered meal recognition APIs
+Live Demo: https://healthtracker-1-33rt.onrender.com/
 
 ---
 
 ## Features
 
-### Authentication
-
-* User registration and login
-* JWT-based authentication
-* Google OAuth login
-* Secure protected routes
-
-### Nutrition Tracking
-
-* Log meals and calories
-* Search food database with autocomplete
-* Track diet history
-* Personalized dietary goals
-
-### User Profile
-
-* Age, weight, height tracking
-* Activity level management
-* Goal-based calorie calculations
-* Profile completion workflow
-
-### Modern UI
-
-* Responsive design
-* Tailwind CSS styling
-* Animated modal interactions
-* Mobile-friendly experience
+- JWT-based Authentication & Authorization
+- AI-powered natural language meal analysis
+- Personalized nutrition targets using Mifflin-St Jeor equation
+- Diet quality scoring system
+- Weekly nutrition reports with AI insights
+- Indian food-aware nutrition tracking
+- Responsive dashboard with macro progress visualization
+- Food search and nutrition metadata system
+- Secure REST APIs
+- Layered backend architecture
 
 ---
 
-# Tech Stack
+## Tech Stack
 
-## Frontend
+### Backend
+- Java 17
+- Spring Boot 3
+- Spring Security
+- Spring Data JPA (Hibernate)
+- JWT Authentication
+- MySQL
+- Maven
 
-* React
-* Vite
-* Tailwind CSS
-* Axios
+### Frontend
+- React 18
+- Vite
+- Tailwind CSS
+- Axios
+- React Router DOM
 
-## Backend
-
-* Spring Boot
-* Spring Security
-* JWT Authentication
-* Hibernate / JPA
-
-## Database
-
-* PostgreSQL / MySQL
-
-## Authentication
-
-* Google OAuth 2.0
-* BCrypt password hashing
+### AI Integration
+- OpenRouter API
+- LLM-based nutrition estimation pipeline
 
 ---
 
-# Project Structure
+## System Architecture
 
-```bash
-Aahar/
-│
-├── frontend/        # React frontend
-├── backend/         # Spring Boot backend
-│
-├── README.md
+```text
+Client (React Frontend)
+        ↓
+Spring Boot REST API
+        ↓
+Service Layer
+        ↓
+JPA/Hibernate
+        ↓
+MySQL Database
+
+AI Nutrition Analysis
+        ↓
+OpenRouter API
 ```
 
 ---
 
-# Environment Variables
+## Core Functionalities
 
-## Backend (`application.properties`)
+### Authentication Module
+- User registration & login
+- JWT token generation
+- Stateless authentication
+- Protected routes
 
-```properties
-spring.datasource.url=YOUR_DB_URL
-spring.datasource.username=YOUR_DB_USERNAME
-spring.datasource.password=YOUR_DB_PASSWORD
+### AI Meal Analysis
+Users can log meals using natural language like:
 
-jwt.secret=YOUR_SECRET_KEY
+```text
+"2 rotis with dal and paneer"
+```
 
-google.client-id=YOUR_GOOGLE_CLIENT_ID
+The system:
+1. Sends meal data to OpenRouter API
+2. Parses AI-generated nutrition response
+3. Calculates calories and macronutrients
+4. Generates diet quality score
+5. Stores dietary records
 
-app.allowed-origins=http://localhost:5173
+---
+
+## Nutrition Target Formula
+
+### Mifflin-St Jeor Equation
+
+For Men:
+
+```math
+BMR = 10W + 6.25H - 5A + 5
+```
+
+For Women:
+
+```math
+BMR = 10W + 6.25H - 5A - 161
+```
+
+Where:
+- W = Weight (kg)
+- H = Height (cm)
+- A = Age (years)
+
+---
+
+## Diet Score Formula
+
+```math
+Score = Σ(wi × min(1, ci / ti)) × 100
+```
+
+Where:
+- wi = nutrient weight
+- ci = consumed amount
+- ti = target amount
+
+Overconsumption penalties are applied automatically.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register user |
+| POST | `/api/auth/login` | Login and receive JWT |
+| GET | `/api/user/profile` | Get user profile |
+| PUT | `/api/user/profile` | Update profile |
+| POST | `/api/diet/analyze` | Analyze meals |
+| GET | `/api/diet/records` | Fetch dietary history |
+| GET | `/api/diet/weekly-report` | Generate weekly report |
+| GET | `/api/food/search?q=` | Search food database |
+
+---
+
+## Security
+
+Implemented using Spring Security.
+
+Features:
+- BCrypt password hashing
+- JWT Bearer authentication
+- Stateless API security
+- Protected endpoints
+- Role-based authorization
+
+---
+
+## Project Structure
+
+### Backend
+
+```text
+src
+ ┣ controller
+ ┣ service
+ ┣ repository
+ ┣ entity
+ ┣ dto
+ ┣ security
+ ┣ config
+ ┣ util
+ ┗ exception
+```
+
+### Frontend
+
+```text
+src
+ ┣ pages
+ ┣ components
+ ┣ services
+ ┣ hooks
+ ┣ layouts
+ ┗ utils
 ```
 
 ---
 
-## Frontend (`.env`)
+## Environment Variables
+
+### Backend
+
+Create a `.env` file or configure environment variables:
 
 ```env
-VITE_API_URL=http://localhost:8080
-VITE_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+OPENROUTER_API_KEY=your_api_key
+JWT_SECRET=your_jwt_secret
+DB_URL=jdbc:mysql://localhost:3306/health_tracker
+DB_USER=root
+DB_PASSWORD=password
 ```
 
 ---
 
-# Installation
+## Installation
 
-## Clone the repository
-
-```bash
-git clone https://github.com/Pankaj-0001/Aahar.git
-cd Aahar
-```
-
----
-
-# Backend Setup
+### Backend
 
 ```bash
+git clone <repo-url>
+
 cd backend
-```
 
-Run the Spring Boot server:
+mvn clean install
 
-```bash
-./mvnw spring-boot:run
-```
-
-Or:
-
-```bash
 mvn spring-boot:run
 ```
 
-Backend runs on:
-
-```bash
-http://localhost:8080
-```
-
----
-
-# Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
+
 npm install
+
 npm run dev
 ```
 
-Frontend runs on:
+---
 
-```bash
-(https://healthtrackar.netlify.app/)
-```
+## Performance
+
+| Metric | Result |
+|---|---|
+| Meal Analysis API | ~1.8s avg |
+| Food Search API | ~180ms avg |
+| Authentication | JWT Stateless |
+| Architecture | Horizontally scalable |
 
 ---
 
-# API Endpoints
+## Future Improvements
 
-## Authentication
-
-| Method | Endpoint                     | Description           |
-| ------ | ---------------------------- | --------------------- |
-| POST   | `/api/auth/register`         | Register user         |
-| POST   | `/api/auth/login`            | Login user            |
-| POST   | `/api/auth/google`           | Google OAuth login    |
-| PUT    | `/api/auth/complete-profile` | Complete user profile |
-
----
-
-# Security
-
-* JWT token authentication
-* BCrypt password encryption
-* Stateless session management
-* Protected API routes
-* CORS configuration support
+- Barcode scanning
+- Image-based food recognition
+- Native mobile app
+- Advanced micronutrient dashboard
+- Sleep & exercise integration
+- Personalized ML recommendation engine
+- Meal planning system
+- Social/community features
 
 ---
 
-# Future Improvements
+## Author
 
-* AI image-based food recognition
-* Daily nutrition analytics
-* Meal recommendations
-* Macro tracking
-* Social/community features
-* Dark mode
+Pankaj Upadhyay
 
----
-
-
-
-# Author
-
-Pankaj
-
-GitHub:
-https://github.com/Pankaj-0001
-
----
+Backend-focused Full Stack Developer  
+Java • Spring Boot • React • JWT • JPA • AI Integration
